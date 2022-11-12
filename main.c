@@ -1,34 +1,57 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
+#include <pthread.h>
+#include <ctype.h>
+#include "SoundPlayer.h"
 #include "Buttons.h"
 #include "LEDMatrix.h"
-#include "Sleep.h"
 
-#define MODE_BUTTON_INDEX 0
-#define BASE_BUTTON_INDEX 1
-#define SNARE_BUTTON_INDEX 2
-#define HIHAT_BUTTON_INDEX 3
-#define MODE "in"
+void* checkForShutdown(void* _arg)
+{
+    bool shutdown = false;
+
+    while(!shutdown) {
+        printf("Enter 'Q' to quit.\n");
+        if (toupper(getchar()) == 'Q') {
+            shutdown = true;
+        }
+    }
+    pthread_exit(NULL);
+}
+
+void waitForShutdown(void)
+{
+    pthread_t shutdownTid;
+    pthread_create(&shutdownTid, NULL, checkForShutdown, NULL);
+    pthread_join(shutdownTid, NULL);
+}
 
 void initializeHardware(void)
 {
+    SoundPlayer_init();
     Buttons_initButtons();   
     LEDMatrix_initMatrix();
+}
+
+void safeShutdown(void)
+{
+    LEDMatrix_cleanup();
+    Buttons_cleanup();
+    SoundPlayer_cleanup();
 }
 
 int main(void)
 {
     initializeHardware();
+
+    SoundPlayer_startPlaying();
+    Buttons_startRunning();
+    LEDMatrix_startDisplay();
     
-    while(0) {
-        printf("MODE: %d  BASE: %d  SNARE: %d  HIHAT: %d\n",
-                Buttons_isButtonPressed(MODE_BUTTON_INDEX),
-                Buttons_isButtonPressed(BASE_BUTTON_INDEX),
-                Buttons_isButtonPressed(SNARE_BUTTON_INDEX),
-                Buttons_isButtonPressed(HIHAT_BUTTON_INDEX));
-        
-        Sleep_waitForMs(100);
-    }
+    waitForShutdown();
+
+    safeShutdown();
 
     return 0;
 }

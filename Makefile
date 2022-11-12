@@ -1,5 +1,5 @@
 TARGET= beatbox
-SOURCES= main.c AudioMixer.c GPIO.c A2D.c I2C.c Buttons.c Joystick.c LEDMatrix.c File.c Sleep.c Terminal.c 
+SOURCES= main.c SoundPlayer.c AudioMixer.c GPIO.c A2D.c I2C.c Buttons.c Joystick.c LEDMatrix.c File.c Sleep.c Terminal.c 
 
 PUBDIR = $(HOME)/cmpt433/public/myApps
 OUTDIR = $(PUBDIR)

@@ -289,7 +289,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 	 *
 	 */
 
-	memset(0, playbackBuffer, sizeof(playbackBuffer));
+	memset(buff, 0, sizeof(*buff) * size);
 
 	pthread_mutex_lock(&audioMutex);
 	{
@@ -300,7 +300,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 				if (pCurrentSound != NULL) {
 					
 					int pDataIndex = soundBites[i].location;
-					int mergedAudioInt = playbackBuffer[bufferIndex] + pCurrentSound->pData[pDataIndex];
+					int mergedAudioInt = buff[bufferIndex] + pCurrentSound->pData[pDataIndex];
 					
 					if (mergedAudioInt > SHRT_MAX) {
 						mergedAudioInt = SHRT_MAX;
@@ -308,7 +308,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 						mergedAudioInt = SHRT_MIN;
 					}
 
-					playbackBuffer[bufferIndex] = (short) mergedAudioInt;
+					buff[bufferIndex] = (short) mergedAudioInt;
 
 					const int LAST_SAMPLE_INDEX = pCurrentSound->numSamples - 1;
 					if (pDataIndex == LAST_SAMPLE_INDEX) {

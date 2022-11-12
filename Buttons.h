@@ -1,9 +1,8 @@
 #ifndef BUTTONS_H
 #define BUTTONS_H
 
-#include <stdbool.h>
-
 void Buttons_initButtons(void);
-bool Buttons_isButtonPressed(int INDEX);
+void Buttons_startRunning(void);
+void Buttons_cleanup(void);
 
 #endif

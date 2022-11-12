@@ -5,6 +5,8 @@
 #include "I2C.h"
 #include "Joystick.h"
 #include "Sleep.h"
+#include "SoundPlayer.h"
+#include "AudioMixer.h"
 
 #define NUM_BYTES 8
 #define BUFF_SIZE 16
@@ -16,6 +18,8 @@
 #define FIRST_DIGIT_MASK 0b01110000
 #define SECOND_DIGIT_MASK 0b10000011
 #define FLOATING_POINT 0b00000100
+#define VOLUME_OFFSET 5
+#define TEMPO_OFFSET 5
 
 typedef struct {
     unsigned char bytes[NUM_BYTES];
@@ -35,13 +39,9 @@ static bitPattern_t digits[10] = {
     /* 9 */ {{0x00, 0xF3, 0x90, 0x90, 0xF3, 0xD2, 0xD2, 0xF3}}
 };
 
-static int numberDips;
-static float maxVolts; 
-static float minVolts; 
-static float minIntreval; 
-static float maxIntreval;
+static unsigned char mBytes[NUM_BYTES] = {0x00, 0x50, 0x50, 0x50, 0x50, 0x70, 0x70, 0x50};
 
-static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+static pthread_t displayTid;
 static bool shutdown = false;
 
 void LEDMatrix_initMatrix(void)
@@ -85,69 +85,63 @@ static void displayInt(int number)
     displayDigits(buff, firstDigitBytes, secondDigitBytes);
 }
 
-static void displayFloat(float number)
+static void displayMode()
 {
-    int numberAsInt = (int) (number * 10);
+    int mode = SoundPlayer_getMode();
 
-    // error handling
-    if (numberAsInt < 0 || numberAsInt > 99) {
-        displayFloat(9.9);
-        return;
-    }
+    unsigned char* secondDigitBytes = digits[mode].bytes;
 
-    // determine which digits need to be displayed and get the bit patterns for them
-    const int FIRST_DIGIT = numberAsInt / 10;
-    const int SECOND_DIGIT = numberAsInt % 10;
-    unsigned char* firstDigitBytes = digits[FIRST_DIGIT].bytes;
-    unsigned char* secondDigitBytes = digits[SECOND_DIGIT].bytes;
-
-    // initialize byte array for the I2C register
-    unsigned char buff[BUFF_SIZE] = {FLOATING_POINT};
-    displayDigits(buff, firstDigitBytes, secondDigitBytes);
+    unsigned char buff[BUFF_SIZE] = {};
+    displayDigits(buff, mBytes, secondDigitBytes);
 }
 
-void LEDMatrix_updateDisplayValues(int numDips, float maxVoltage, float minVoltage, float minTimeIntreval, float maxTimeIntreval)
+void* updateDisplayOnJoystickPress(void* _args)
 {
-    pthread_mutex_lock(&mutex);
-    {
-        numberDips = numDips;
-        maxVolts = maxVoltage;
-        minVolts = minVoltage;
-        minIntreval = minTimeIntreval;
-        maxIntreval = maxTimeIntreval;
-    }
-    pthread_mutex_unlock(&mutex);
-}
-
-void* displaySampleData(void* args)
-{
-    Sleep_waitForMs(1200);
     while(!shutdown) {
-        pthread_mutex_lock(&mutex);
-        {
-            if(!shutdown) {
-                if (Joystick_up()) {
-                    displayFloat(maxVolts);
-                } else if (Joystick_down()) {
-                    displayFloat(minVolts);
-                } else if (Joystick_left()) {
-                    displayFloat(minIntreval);
-                } else if (Joystick_right()) {
-                    displayFloat(maxIntreval);
-                } else {
-                    displayInt(numberDips);
-                }
-            }
+        if (Joystick_up()) {
+
+            int currentVolume = SoundPlayer_getVolume();
+            SoundPlayer_setVolume(currentVolume + VOLUME_OFFSET);
+            int volume = SoundPlayer_getVolume();
+            displayInt(volume);
+            Sleep_waitForMs(500);
+
+        } else if (Joystick_down()) {
+
+            int currentVolume = SoundPlayer_getVolume();
+            SoundPlayer_setVolume(currentVolume - VOLUME_OFFSET);
+            int volume = SoundPlayer_getVolume();
+            displayInt(volume);
+            Sleep_waitForMs(500);
+
+        } else if (Joystick_left()) {
+
+            int currentTempo = SoundPlayer_getTempo();
+            SoundPlayer_setTempo(currentTempo - TEMPO_OFFSET);
+            int tempoBPM = SoundPlayer_getTempo();
+            displayInt(tempoBPM);
+            Sleep_waitForMs(500);
+
+        } else if (Joystick_right()) {
+
+            
+            int currentTempo = SoundPlayer_getTempo();
+            SoundPlayer_setTempo(currentTempo + TEMPO_OFFSET);
+            int tempoBPM = SoundPlayer_getTempo();
+            displayInt(tempoBPM);
+            Sleep_waitForMs(500);
+
+        } else {
+
+            displayMode();
         }
-        pthread_mutex_unlock(&mutex);
     }
     pthread_exit(NULL);
 }
 
 void LEDMatrix_startDisplay(void)
 {
-    pthread_t tid;
-    pthread_create(&tid, NULL, displaySampleData, NULL);
+    pthread_create(&displayTid, NULL, updateDisplayOnJoystickPress, NULL);
 }
 
 static void clearDisplay(void)
@@ -156,9 +150,9 @@ static void clearDisplay(void)
     I2C_writeBytesToI2CReg(LED_MATRIX_IDX, DISPLAY_REG, buff, BUFF_SIZE);
 }
 
-void LEDMatrix_stopRunning(void)
+void LEDMatrix_cleanup(void)
 {
     shutdown = true;
+    pthread_join(displayTid, NULL);
     clearDisplay();
-    pthread_mutex_unlock(&mutex);
 }
