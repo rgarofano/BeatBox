@@ -7,6 +7,7 @@
 #include <pthread.h>
 #include <limits.h>
 #include <alloca.h> // needed for mixer
+#include "IntervalTimer.h"
 
 
 static snd_pcm_t *handle;
@@ -330,6 +331,9 @@ void* playbackThread(void* _arg)
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
+
+		// finished filling buffer, mark the time interval
+		Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
 
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,

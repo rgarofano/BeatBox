@@ -6,6 +6,7 @@
 #include "SoundPlayer.h"
 #include "AudioMixer.h"
 #include "Sleep.h"
+#include "IntervalTimer.h"
 
 #define BASE_WAV_PATH "beatbox-wav-files/100051__menegass__gui-drum-bd-hard.wav"
 #define SNARE_WAV_PATH "beatbox-wav-files/100059__menegass__gui-drum-snare-soft.wav"
@@ -93,35 +94,45 @@ static void playRockBeat(long long halfBeatTimeMs)
     halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
     halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
     halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
     halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
-    SoundPlayer_playHihatSoundNow();
+    halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
+
+    Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 }
 
 static void playCustomBeat(long long halfBeatTimeMs)
@@ -131,29 +142,35 @@ static void playCustomBeat(long long halfBeatTimeMs)
     halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
     halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 
     halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
     halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
 
     Sleep_waitForMs(halfBeatTimeMs);
+    Interval_markInterval(INTERVAL_BEAT_BOX);
 }
 
 void* playBeatForCurrentMode(void* _arg)
@@ -175,8 +192,6 @@ void* playBeatForCurrentMode(void* _arg)
             }
         }
         pthread_mutex_unlock(&soundPlayerMutex);
-
-        Sleep_waitForMs(halfBeatTimeMs * 2);
     }
 
     pthread_exit(NULL);
