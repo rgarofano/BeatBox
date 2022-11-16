@@ -80,7 +80,7 @@ static bool modeChanged(int expectedMode) {
 
 static void queueNewEighthNote(bool playBaseSound, bool playSnareSound,
                                bool playHihatSound, int initialMode) {
-  if (modeChanged(initialMode)) {
+  if (modeChanged(initialMode) || shutdown) {
     return;
   }
 
@@ -215,8 +215,8 @@ void SoundPlayer_cleanup(void) {
   shutdown = true;
   pthread_mutex_unlock(&soundPlayerMutex);
   pthread_join(playBeatTid, NULL);
+  AudioMixer_cleanup();
   AudioMixer_freeWaveFileData(&baseSound);
   AudioMixer_freeWaveFileData(&snareSound);
   AudioMixer_freeWaveFileData(&hihatSound);
-  AudioMixer_cleanup();
 }
