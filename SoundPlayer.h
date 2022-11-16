@@ -17,9 +17,9 @@
 
 void SoundPlayer_init(void);
 void SoundPlayer_startPlaying(void);
-long long SoundPlayer_playBaseSoundNow(void);
-long long SoundPlayer_playSnareSoundNow(void);
-long long SoundPlayer_playHihatSoundNow(void);
+void SoundPlayer_playBaseSoundNow(void);
+void SoundPlayer_playSnareSoundNow(void);
+void SoundPlayer_playHihatSoundNow(void);
 void SoundPlayer_setMode(const int MODE);
 int SoundPlayer_getMode(void);
 void SoundPlayer_setTempo(int bpm);

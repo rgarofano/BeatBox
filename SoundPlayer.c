@@ -19,6 +19,12 @@
 #define MAX_BPM 300
 #define MIN_VOL 0
 #define MAX_VOL 100
+#define PLAY_BASE 1
+#define NO_BASE 0
+#define PLAY_SNARE 1
+#define NO_SNARE 0
+#define PLAY_HIHAT 1
+#define NO_HIHAT 0
 
 static pthread_mutex_t soundPlayerMutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_t playBeatTid;
@@ -41,151 +47,100 @@ static long long calculateHalfBeatTime(void) {
   return (60.0 / (float)tempoBPM) * 0.5 * 1000;
 }
 
-long long SoundPlayer_playBaseSoundNow(void) {
-  long long newHalfBeatTimeMs;
-
+void SoundPlayer_playBaseSoundNow(void) {
   pthread_mutex_lock(&soundPlayerMutex);
   {
     AudioMixer_setVolume(volume);
-    newHalfBeatTimeMs = calculateHalfBeatTime();
     AudioMixer_queueSound(&baseSound);
   }
   pthread_mutex_unlock(&soundPlayerMutex);
-
-  return newHalfBeatTimeMs;
 }
 
-long long SoundPlayer_playSnareSoundNow(void) {
-  long long newHalfBeatTimeMs;
-
+void SoundPlayer_playSnareSoundNow(void) {
   pthread_mutex_lock(&soundPlayerMutex);
   {
     AudioMixer_setVolume(volume);
-    newHalfBeatTimeMs = calculateHalfBeatTime();
     AudioMixer_queueSound(&snareSound);
   }
   pthread_mutex_unlock(&soundPlayerMutex);
-
-  return newHalfBeatTimeMs;
 }
 
-long long SoundPlayer_playHihatSoundNow(void) {
-  long long newHalfBeatTimeMs;
-
+void SoundPlayer_playHihatSoundNow(void) {
   pthread_mutex_lock(&soundPlayerMutex);
   {
     AudioMixer_setVolume(volume);
-    newHalfBeatTimeMs = calculateHalfBeatTime();
     AudioMixer_queueSound(&hihatSound);
   }
   pthread_mutex_unlock(&soundPlayerMutex);
-
-  return newHalfBeatTimeMs;
 }
 
-static void playRockBeat(long long halfBeatTimeMs) {
-  pthread_mutex_unlock(&soundPlayerMutex);
+static bool modeChanged(int expectedMode) {
+  return SoundPlayer_getMode() != expectedMode;
+}
 
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-  halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
+static void queueNewEighthNote(bool playBaseSound, bool playSnareSound,
+                               bool playHihatSound, int initialMode) {
+  if (modeChanged(initialMode)) {
+    return;
+  }
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  if (playBaseSound) {
+    SoundPlayer_playBaseSoundNow();
+  }
 
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
+  if (playSnareSound) {
+    SoundPlayer_playSnareSoundNow();
+  }
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  if (playHihatSound) {
+    SoundPlayer_playHihatSoundNow();
+  }
 
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-  halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
-
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
-
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
-
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-  halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
-
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
-
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
-
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-  halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
-
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
-
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
-
+  int halfBeatTimeMs = calculateHalfBeatTime();
   Sleep_waitForMs(halfBeatTimeMs);
   Interval_markInterval(INTERVAL_BEAT_BOX);
 }
 
-static void playCustomBeat(long long halfBeatTimeMs) {
-  pthread_mutex_unlock(&soundPlayerMutex);
+static void playRockBeat(void) {
+  queueNewEighthNote(PLAY_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
 
-  halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
+  queueNewEighthNote(NO_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  queueNewEighthNote(NO_BASE, PLAY_SNARE, PLAY_HIHAT, ROCK);
 
-  halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
-  halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
+  queueNewEighthNote(NO_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  queueNewEighthNote(PLAY_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
 
-  halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
+  queueNewEighthNote(NO_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  queueNewEighthNote(NO_BASE, PLAY_SNARE, PLAY_HIHAT, ROCK);
 
-  halfBeatTimeMs = SoundPlayer_playSnareSoundNow();
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
+  queueNewEighthNote(NO_BASE, NO_SNARE, PLAY_HIHAT, ROCK);
+}
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+static void playCustomBeat(void) {
+  queueNewEighthNote(PLAY_BASE, NO_SNARE, NO_HIHAT, CUSTOM);
 
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
+  queueNewEighthNote(PLAY_BASE, PLAY_SNARE, NO_HIHAT, CUSTOM);
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  queueNewEighthNote(NO_BASE, PLAY_SNARE, NO_HIHAT, CUSTOM);
 
-  halfBeatTimeMs = SoundPlayer_playBaseSoundNow();
-  halfBeatTimeMs = SoundPlayer_playHihatSoundNow();
+  queueNewEighthNote(NO_BASE, PLAY_SNARE, PLAY_HIHAT, CUSTOM);
 
-  Sleep_waitForMs(halfBeatTimeMs);
-  Interval_markInterval(INTERVAL_BEAT_BOX);
+  queueNewEighthNote(NO_BASE, NO_SNARE, PLAY_HIHAT, CUSTOM);
+
+  queueNewEighthNote(PLAY_BASE, PLAY_SNARE, PLAY_HIHAT, CUSTOM);
 }
 
 void* playBeatForCurrentMode(void* _arg) {
-  while (true) {
-    long long halfBeatTimeMs;
-
-    pthread_mutex_lock(&soundPlayerMutex);
-    {
-      if (shutdown) {
-        break;
-      }
-
-      halfBeatTimeMs = calculateHalfBeatTime();
-      if (mode == ROCK) {
-        playRockBeat(halfBeatTimeMs);
-      } else if (mode == CUSTOM) {
-        playCustomBeat(halfBeatTimeMs);
-      }
+  while (!shutdown) {
+    int currentMode = SoundPlayer_getMode();
+    if (currentMode == ROCK) {
+      playRockBeat();
+    } else if (currentMode == CUSTOM) {
+      playCustomBeat();
     }
-    pthread_mutex_unlock(&soundPlayerMutex);
   }
 
   pthread_exit(NULL);
