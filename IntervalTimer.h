@@ -1,16 +1,16 @@
-#ifndef _INTERVAL_TIMER_H_
-#define _INTERVAL_TIMER_H_
+/* Module to record and report interval times
+   Written by Brian Fraser
+   Usage:
+   1. Define your Interval_whichInterval enums of interest
+      (Ensure NUM_INTERVALS is last)
+   2. Call Interval_markInterval() periodically to mark each
+      occurance of the interval.
+   3. Call getStatisticsAndClear() to get the statistics for
+      an interval of interest. Calling this will clear the 
+      data collected for this interval (but not others).     */
 
-// Module to record and report interval times
-//     Written by Brian Fraser
-// Usage:
-//  1. Define your Interval_whichInterval enums of interest
-//     (Ensure NUM_INTERVALS is last)
-//  2. Call Interval_markInterval() periodically to mark each
-//     occurance of the interval.
-//  3. Call getStatisticsAndClear() to get the statistics for
-//     an interval of interest. Calling this will clear the 
-//     data collected for this interval (but not others).
+#ifndef INTERVALTIMER_H
+#define INTERVALTIMER_H
 
 // Maximum number of timestamps to record for a given interval.
 #define MAX_TIMESTAMPS (1024*4)

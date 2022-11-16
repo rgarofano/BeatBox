@@ -1,5 +1,6 @@
-// Playback sounds in real time, allowing multiple simultaneous wave files
-// to be mixed together and played without jitter.
+/* Playback sounds in real time, allowing multiple simultaneous wave files
+   to be mixed together and played without jitter.                         */
+
 #ifndef AUDIO_MIXER_H
 #define AUDIO_MIXER_H
 

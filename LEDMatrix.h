@@ -1,4 +1,5 @@
-/* Used to initialize and display two digit numbers on the LED Matrix */
+/* Used to initialize and display two digit numbers on the LED Matrix.
+   Runs a thread that updates the display based on joystick movements */
 
 #ifndef LEDMATRIX_H
 #define LEDMATRIX_H

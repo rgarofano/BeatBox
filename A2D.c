@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "File.h"
 
 #define MAX_SIZE 1024
@@ -15,11 +16,11 @@ static void checkOutOfBounds(const int AIN_NUMBER) {
     }
 }
 
-int A2D_readVoltage(const int AIN_NUMBER)
-{
+int A2D_readVoltage(const int AIN_NUMBER) {
     checkOutOfBounds(AIN_NUMBER);
     char path[MAX_SIZE];
-    snprintf(path, MAX_SIZE, "/sys/bus/iio/devices/iio:device0/in_voltage%d_raw", AIN_NUMBER);
+    snprintf(path, MAX_SIZE,
+             "/sys/bus/iio/devices/iio:device0/in_voltage%d_raw", AIN_NUMBER);
     FILE* pFile = File_getFilePointer(path, "r", "in_voltage_raw");
     char* readData = File_extractFileContents(pFile);
     fclose(pFile);
@@ -27,7 +28,6 @@ int A2D_readVoltage(const int AIN_NUMBER)
     return voltageReading;
 }
 
-float A2D_voltageFromReading(int voltageReading) 
-{
-    return ((float) voltageReading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
+float A2D_voltageFromReading(int voltageReading) {
+    return ((float)voltageReading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
 }

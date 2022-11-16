@@ -1,3 +1,11 @@
+/* Runs a thread that continuously plays sound for the selected mode.
+   Stores parameters for tempo in beats per minute, volume from 0 to 
+   100, and which mode is in use (0, 1, or 2). These parameters have 
+   a default value but can be set by other modules based on joystick 
+   movement. These parameters can be read by other modules such as
+   the LED matrix which displays them. Allows other modules to play 
+   a base, snare, or hihat sound instantaeously.                    */
+
 #ifndef SOUNDPLAYER_H
 #define SOUNDPLAYER_H
 

@@ -13,9 +13,6 @@ CFLAGS = -g -std=c99 -D _POSIX_C_SOURCE=200809L -Werror -Wshadow -Wall
 # - See the AudioGuide for steps to copy library from target to host.
 LFLAGS = -L$(HOME)/cmpt433/public/asound_lib_BBB
 
-# -pg for supporting gprof profiling.
-#CFLAGS += -pg
-
 all: beatbox wav
 
 beatbox:
