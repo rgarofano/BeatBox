@@ -37,10 +37,7 @@ void Interval_cleanup(void) {
 
 void Interval_markInterval(enum Interval_whichInterval whichInterval) {
   assert(whichInterval >= 0 && whichInterval < NUM_INTERVALS);
-
-  if (!s_initialized) {
-    return;
-  }
+  assert(s_initialized);
 
   timestamps_t *pData = &s_intervalData[whichInterval];
   pthread_mutex_lock(&lock);
